@@ -9,21 +9,34 @@ Parameters:
       - staging
       - prod
 
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+
 Resources:
+  HelloApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "hello-api-${Stage}"
+      StageName: !Ref Stage
+
   HelloFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "hello-lambda-${Stage}"
-      Runtime: python3.13
+      Runtime: python3.13  
       Handler: src/handler.lambda_handler
       CodeUri: .
       Events:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref HelloApi
             Path: /hello
             Method: GET
+
 Outputs:
-  StagingApiUrl:
+  ApiUrl:
     Description: "API Gateway endpoint"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
+    Value: !Sub "https://${HelloApi}.execute-api.${AWS::Region}.amazonaws.com/${Stage}"
