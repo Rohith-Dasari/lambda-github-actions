@@ -94,7 +94,7 @@ jobs:
         run: |
           for i in {1..5}; do
             echo "Newman attempt $i..."
-            if newman run postman/hello.postman_collection.json \
+            if newman run postman/collections/github_action_lambda.postman_collection.json \
               --env-var "baseUrl=$STAGING_API_URL"; then
               echo "Contract tests passed"
               exit 0
@@ -103,7 +103,6 @@ jobs:
           done
           echo "Contract tests failed"
           exit 1
- 
 
   deploy-prod:
     needs: deploy-staging
