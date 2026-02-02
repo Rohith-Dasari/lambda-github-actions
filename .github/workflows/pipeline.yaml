@@ -74,7 +74,17 @@ jobs:
 
           echo "STAGING_API_URL=$API_URL" >> $GITHUB_ENV
 
-      - name: Hit Staging API
+      - name: Hit Staging API (wait for readiness)
         run: |
-          echo "Testing API at: $STAGING_API_URL"
-          curl -f "$STAGING_API_URL/hello"
+          echo "Waiting for API to become ready..."
+          for i in {1..10}; do
+            echo "Attempt $i..."
+            if curl -f "$STAGING_API_URL/hello"; then
+              echo "API is live!"
+              exit 0
+            fi
+            sleep 15
+          done
+
+          echo "API did not become ready in time"
+          exit 1
