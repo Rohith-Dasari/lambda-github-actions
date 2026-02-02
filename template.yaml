@@ -25,7 +25,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "hello-lambda-${Stage}"
-      Runtime: python3.12
+      Runtime: python3.13
       Handler: src/handler.lambda_handler
       CodeUri: .
       Events:
