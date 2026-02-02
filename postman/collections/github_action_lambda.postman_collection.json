@@ -41,7 +41,6 @@
             "{{baseUrl}}"
           ],
           "path": [
-            "staging",
             "hello"
           ]
         }
