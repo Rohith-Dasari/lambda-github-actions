@@ -56,14 +56,26 @@ jobs:
             --stack-name hello-staging \
             --parameter-overrides Stage=staging \
             --no-confirm-changeset \
-            --no-fail-on-empty-changeset \
-            --output json > sam-output.json
+            --no-fail-on-empty-changeset
+          # Removed the invalid --output flag
 
       - name: Extract API URL
         run: |
-          API_URL=$(jq -r '.outputs.ApiUrl' sam-output.json)
+          # Use AWS CLI to fetch the stack outputs explicitly
+          API_URL=$(aws cloudformation describe-stacks \
+            --stack-name hello-staging \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
+            --output text)
+
+          # Check if URL was found (optional but good for debugging)
+          if [ "$API_URL" == "None" ] || [ -z "$API_URL" ]; then
+            echo "Error: ApiUrl output not found in stack."
+            exit 1
+          fi
+
           echo "STAGING_API_URL=$API_URL" >> $GITHUB_ENV
 
       - name: Hit Staging API
         run: |
-          curl -f $STAGING_API_URL/hello
+          echo "Testing API at: $STAGING_API_URL"
+          curl -f "$STAGING_API_URL/hello"
