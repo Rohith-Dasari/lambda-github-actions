@@ -88,3 +88,52 @@ jobs:
 
           echo "API did not become ready in time"
           exit 1
+      - name: Install Newman
+        run: npm install -g newman
+      - name: Run Newman Tests
+        run: |
+          for i in {1..5}; do
+            echo "Newman attempt $i..."
+            if newman run postman/hello.postman_collection.json \
+              --env-var "baseUrl=$STAGING_API_URL"; then
+              echo "Contract tests passed"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Contract tests failed"
+          exit 1
+ 
+
+  deploy-prod:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment: prod
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Configure AWS (Prod)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.PROD_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - name: Install SAM
+        run: pip install aws-sam-cli
+
+      - name: Deploy Production
+        run: |
+          sam build
+          sam deploy \
+            --stack-name hello-prod \
+            --parameter-overrides Stage=prod \
+            --resolve-s3 \
+            --capabilities CAPABILITY_IAM \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset

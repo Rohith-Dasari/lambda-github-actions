@@ -1,0 +1,52 @@
+{
+  "info": {
+    "_postman_id": "7f93055d-d3f4-4fee-a14a-0b29fd37f275",
+    "name": "github_action_lambda",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "hello-lambda",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "id": "2b1344d2-5811-4d08-bedf-56d9ceb2f6af",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response time < 1000ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+              "});\r",
+              "pm.test(\"Content-Type is text\", function () {\r",
+              "    const contentType = pm.response.headers.get(\"Content-Type\") || \"\";\r",
+              "    pm.expect(contentType.toLowerCase()).to.include(\"text\");\r",
+              "});\r"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "id": "c353cc22-f922-4b9f-9a6f-b9f14e2e7f8f",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/hello",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "staging",
+            "hello"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
