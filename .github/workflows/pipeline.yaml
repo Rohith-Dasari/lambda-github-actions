@@ -1,0 +1,60 @@
+name: Hello Lambda Pipeline
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install deps
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run unit tests
+        run: pytest
+
+  deploy-staging:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.STAGING_ROLE_ARN }}
+          aws-region: ap-south-1
+
+      - name: Install SAM + jq
+        run: |
+          pip install aws-sam-cli
+          sudo apt-get install -y jq
+
+      - name: Deploy Staging
+        run: |
+          sam build
+          sam deploy \
+            --stack-name hello-staging \
+            --parameter-overrides Stage=staging \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --output json > sam-output.json
+
+      - name: Extract API URL
+        run: |
+          API_URL=$(jq -r '.outputs.StagingApiUrl' sam-output.json)
+          echo "STAGING_API_URL=$API_URL" >> $GITHUB_ENV
+
+      - name: Hit Staging API
+        run: |
+          curl -f $STAGING_API_URL/hello
