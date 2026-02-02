@@ -55,19 +55,17 @@ jobs:
           sam deploy \
             --stack-name hello-staging \
             --parameter-overrides Stage=staging \
+            --resolve-s3 \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset
-          # Removed the invalid --output flag
 
       - name: Extract API URL
         run: |
-          # Use AWS CLI to fetch the stack outputs explicitly
           API_URL=$(aws cloudformation describe-stacks \
             --stack-name hello-staging \
             --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
             --output text)
 
-          # Check if URL was found (optional but good for debugging)
           if [ "$API_URL" == "None" ] || [ -z "$API_URL" ]; then
             echo "Error: ApiUrl output not found in stack."
             exit 1
